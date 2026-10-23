@@ -1,6 +1,7 @@
 import torch
 
 from torch import Tensor, Size
+import datetime
 
 
 class LinearModel():
@@ -15,7 +16,10 @@ class LinearModel():
     def init_weights(self, input_shape: Size, output_shape: Size) -> Tensor:
         """Create the model's weight tensor."""
         # TODO: Initialize one small random weight for every input-output connection.
-        raise NotImplementedError()
+        shape = (*input_shape, *output_shape)
+
+        rand_weights = torch.randn(shape, dtype=torch.float64)
+        return rand_weights
 
     def calculate_output(self, input: Tensor) -> Tensor:
         """Apply the model to an input tensor."""

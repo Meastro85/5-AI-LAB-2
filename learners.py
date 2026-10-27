@@ -44,20 +44,21 @@ class RegressionLearner(Learner):
                 data = data.to(device)
                 targets = targets.to(device)
 
-                # TODO: Implement the batch update step.
-
-                loss = torch.tensor([0])
+                self.optimizer.zero_grad()
+                predictions = self.model(data)
+                loss = self.criterion(predictions, targets)
+                loss.backward()
+                self.optimizer.step()
 
                 train_loss += loss.item() * len(data)
 
             train_loss = train_loss / len(dataloader.dataset)
 
-            train_losses.append(train_loss)
-
-            print(f"train epoch [{epoch + 1}/{epochs}]:\ttrain loss = {train_loss:.6f}")   
-
-            if train_loss <= min(train_losses):
+            if not train_losses or train_loss <= min(train_losses):
                 self.save("leader")
+
+            train_losses.append(train_loss)
+            print(f"train epoch [{epoch + 1}/{epochs}]:\ttrain loss = {train_loss:.6f}")   
 
         print()
         
@@ -72,11 +73,18 @@ class RegressionLearner(Learner):
 
         self.model.eval()  # set model in evaluation mode
 
-        test_loss = 0
+        squared_error_sum = 0
 
-        # TODO: Compute the model's RMSE on the test dataset.
+        dataloader = DataLoader(dataset, batch_size=32)
+        for data, targets in dataloader:
+            data = data.to(device)
+            targets = targets.to(device)
 
-        return test_loss
+            predictions = self.model(data)
+            squared_error_sum += torch.sum((predictions - targets) ** 2).item()
+            mean_squared_error = squared_error_sum / len(dataset)
+
+        return math.sqrt(mean_squared_error)
 
     @torch.no_grad()
     def predict(self, dataset, device):

@@ -119,9 +119,11 @@ class ClassificationLearner(Learner):
                 data = data.to(device)
                 targets = targets.to(device)
                 
-                # TODO: Implement the batch update step.
-
-                loss = torch.tensor([0])
+                self.optimizer.zero_grad()
+                predictions = self.model(data)
+                loss = self.criterion(predictions, targets)
+                loss.backward()
+                self.optimizer.step()
 
                 train_loss += loss.item() * len(data)
 
@@ -138,7 +140,7 @@ class ClassificationLearner(Learner):
 
             print(f"train epoch [{epoch + 1}/{epochs}]:\ttrain loss = {train_loss:.4f}\tvalid loss = {valid_loss:.4f}\tvalid accuracy = {100 * valid_accuracy:.2f}%")   
 
-            if valid_loss <= min(valid_losses):
+            if len(valid_losses) == 1 or valid_loss <= min(valid_losses[:-1]):
                 self.save("leader")
 
         print()
@@ -161,8 +163,19 @@ class ClassificationLearner(Learner):
     @torch.no_grad()
     def _evaluate(self, dataloader, device):
         eval_loss = 0
-        eval_accuracy = 0
+        correct_predictions = 0
 
-        # TODO: Compute the model's loss and accuracy over the dataset.
+        for data, targets in dataloader:
+            data = data.to(device)
+            targets = targets.to(device)
+
+            predictions = self.model(data)
+            loss = self.criterion(predictions, targets)
+            eval_loss += loss.item() * len(data)
+            correct_predictions += (predictions.argmax(dim=1) == targets).sum().item()
+
+        dataset_size = len(dataloader.dataset)
+        eval_loss /= dataset_size
+        eval_accuracy = correct_predictions / dataset_size
 
         return (eval_loss, eval_accuracy)

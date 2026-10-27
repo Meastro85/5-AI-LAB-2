@@ -14,10 +14,14 @@ class NeuralNetworkClassificationModel(torch.nn.Module):
     def __init__(self):
         super().__init__()
         # TODO: Define the three classification layers.
-        self.layer1 = None
-        self.layer2 = None
-        self.layer3 = None
+        self.flatten = torch.nn.Flatten()
+        self.layer1 = torch.nn.Linear(28 * 28, 128)
+        self.layer2 = torch.nn.Linear(128, 64)
+        self.layer3 = torch.nn.Linear(64, 10)
+        self.activation = torch.nn.ReLU()
 
     def forward(self, x: torch.Tensor):
-        # TODO: Implement the forward pass.
-        return x
+        x = self.flatten(x)
+        x = self.activation(self.layer1(x))
+        x = self.activation(self.layer2(x))
+        return self.layer3(x)

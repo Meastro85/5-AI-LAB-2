@@ -12,12 +12,12 @@ from utilities import plot_images_and_labels, plot_training_process
 
 random_seed = 1
 
-batch_size_train = 32
+batch_size_train = 8
 batch_size_test = 1000
 
-epochs = 8
+epochs = 6
 
-learning_rate = 0.01
+learning_rate = 0.025
 
 ## INITIALISATION
 

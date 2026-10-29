@@ -79,29 +79,74 @@ def plot_house_results(sizes, prices, estimations, linear_sizes, linear_prices, 
     plt.show()
 
 
-def plot_images_and_labels(images, labels, predictions = None):
+def plot_images_and_labels(
+    images,
+    labels,
+    predictions=None,
+    class_names=None,
+    normalization_mean=None,
+    normalization_std=None,
+):
+    if (normalization_mean is None) != (normalization_std is None):
+        raise ValueError("Provide both normalization_mean and normalization_std, or neither.")
+
     images = images[:20]
     labels = labels[:20]
     predictions = None if predictions is None else predictions[:20]
     figure = plt.figure()
+
+    def format_label(value):
+        value = value.item() if hasattr(value, "item") else value
+        return class_names[int(value)] if class_names is not None else str(value)
+
     for i in range(len(images)):
         ax = figure.add_subplot(4, 5, i + 1)
-        ax.imshow(images[i][0], cmap="gray", interpolation="none")
-        ax.set_title(f"Label: {labels[i]}" if predictions is None else f"Label: {labels[i]}\nPrediction: {predictions[i]}")
+        image = images[i].detach().cpu()
+        if normalization_mean is not None:
+            mean = image.new_tensor(normalization_mean).view(-1, 1, 1)
+            std = image.new_tensor(normalization_std).view(-1, 1, 1)
+            image = (image * std + mean).clamp(0, 1)
+
+        if image.shape[0] == 1:
+            ax.imshow(image[0], cmap="gray", interpolation="none")
+        else:
+            ax.imshow(image.permute(1, 2, 0), interpolation="none")
+
+        label = format_label(labels[i])
+        title = f"Label: {label}"
+        if predictions is not None:
+            title += f"\nPrediction: {format_label(predictions[i])}"
+        ax.set_title(title)
         ax.set_xticks([])
         ax.set_yticks([])
     figure.tight_layout()
     plt.show()
 
 
-def plot_training_process(train_losses, valid_losses):
-    figure = plt.figure()
-    ax = figure.add_subplot()
-    ax.plot(train_losses, label="Training loss")
-    ax.plot(valid_losses, label="Validation loss")
-    ax.set_title("Training process")
-    ax.set_xlabel("Epoch")
-    ax.set_ylabel("Loss")
-    ax.legend()
-    figure.tight_layout()
+def plot_training_process(train_losses, valid_losses, valid_accuracies=None):
+    epochs = np.arange(1, len(train_losses) + 1)
+
+    if valid_accuracies is None:
+        figure, ax = plt.subplots()
+        ax.plot(epochs, train_losses, label="Training loss")
+        if valid_losses:
+            ax.plot(epochs, valid_losses, label="Validation loss")
+        ax.set_xlabel("Epoch")
+        ax.set_ylabel("Loss")
+        ax.legend()
+    else:
+        figure, (loss_ax, accuracy_ax) = plt.subplots(2, 1, sharex=True)
+        loss_ax.plot(epochs, train_losses, label="Training loss")
+        loss_ax.plot(epochs, valid_losses, label="Validation loss")
+        loss_ax.set_ylabel("Loss")
+        loss_ax.legend()
+
+        accuracy_ax.plot(epochs, np.asarray(valid_accuracies) * 100, label="Validation accuracy")
+        accuracy_ax.set_xlabel("Epoch")
+        accuracy_ax.set_ylabel("Accuracy (%)")
+        accuracy_ax.set_ylim(0, 100)
+        accuracy_ax.legend()
+
+    figure.suptitle("Training process")
+    figure.tight_layout(rect=(0, 0, 1, 0.96))
     plt.show()

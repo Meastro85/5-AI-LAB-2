@@ -13,13 +13,13 @@ from utilities import plot_house_sizes_and_prices, plot_house_results, plot_trai
 
 random_seed = 1
 
-batch_size = 64 # Batch size lager -> accuratere berekeningen maar trager
+batch_size = 32 # Batch size lager -> accuratere berekeningen maar trager
 
-epochs = 1000 # Epochs hoger -> Meer training rondes, accuratere loss op het einde
+epochs = 10 # Epochs hoger -> Meer training rondes, meer kans op overfitting bij kleinere datasets
 
-learning_rate = 1e-4 # Adam: 10 stap size zegt tegen optimizer welke kan de loss reduced, Te groot: Loss wordt NaN, Te klein: Stabiel maar lange tijd nodig
+learning_rate = 1000 # Adam: 10 stap size zegt tegen optimizer welke kan de loss reduced, Te groot: Loss wordt NaN, Te klein: Stabiel maar lange tijd nodig
 
-train_dataset_size = 10000 # Meer training data -> meer resultaten om op te trainen
+train_dataset_size = 5000 # Meer training data -> meer resultaten om op te trainen
 test_dataset_size = 20
 
 ## INITIALISATION
@@ -67,7 +67,7 @@ criterion = torch.nn.MSELoss()
 
 # create an instance of an appropriate opimizer to train the model parameters (see https://pytorch.org/docs/stable/optim.html)
 
-optimizer = torch.optim.SGD(model.parameters(), lr = learning_rate) #Adam
+optimizer = torch.optim.Adam(model.parameters(), lr = learning_rate) #Adam
 
 """END TODO"""
 

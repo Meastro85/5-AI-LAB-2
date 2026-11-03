@@ -166,17 +166,15 @@ def main():
             args.search_epochs,
             device,
         )
-        best_epoch_index = min(
-            range(len(validation_losses)), key=validation_losses.__getitem__
-        )
+        last_epoch_index = len(validation_losses) - 1
         result = {
             "learning_rate": learning_rate,
             "train_losses": train_losses,
             "validation_losses": validation_losses,
             "validation_accuracies": validation_accuracies,
-            "best_validation_loss": validation_losses[best_epoch_index],
-            "best_validation_accuracy": validation_accuracies[best_epoch_index],
-            "best_epoch": best_epoch_index + 1,
+            "best_validation_loss": validation_losses[last_epoch_index],
+            "best_validation_accuracy": validation_accuracies[last_epoch_index],
+            "best_epoch": last_epoch_index + 1,
         }
         rate_results.append(result)
         rate_axis.plot(
